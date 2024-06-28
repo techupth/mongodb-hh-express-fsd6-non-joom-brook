@@ -1,15 +1,71 @@
 import { Router } from "express";
+import { ObjectId } from "mongodb";
+import { db } from "../utils/db.js";
 
 const productRouter = Router();
 
-productRouter.get("/", (req, res) => {});
+productRouter.get("/", async (req, res) => {
+    const collection = db.collection("products")
 
-productRouter.get("/:id", (req, res) => {});
+    const products = await collection
+        .find()
+        .toArray()
 
-productRouter.post("/", (req, res) => {});
+    return res.json({ data: products })
+});
 
-productRouter.put("/:id", (req, res) => {});
+productRouter.get("/:id", async (req, res) => {
+    const collection = db.collection("products")
 
-productRouter.delete("/:id", (req, res) => {});
+    const productId = new ObjectId(req.params.id)
+
+    const products = await collection.findOne({
+        _id: productId
+    })
+
+    return res.json( {data:products })
+});
+
+productRouter.post("/", async (req, res) => {
+    const collection = db.collection("products")
+
+    const productData = {...req.body}
+    const products = await collection.insertOne(productData)
+
+    return res.json({
+        "message": "Product (${products.insertedId}) has been created successfully"
+       })
+});
+
+productRouter.put("/:id", async (req, res) => {
+    const collection = db.collection("products")
+
+    const productId = new ObjectId(req.params.id)
+
+    const newProductData = {...req.body}
+
+    await collection.updateOne({
+        _id: productId
+    },{
+        $set: newProductData
+    })
+    return res.json({
+        "message": "Product (${productId}) has been updated successfully"
+       })
+});
+
+productRouter.delete("/:id", async (req, res) => {
+    const collection = db.collection("products")
+
+    const productId = new ObjectId(req.params.id)
+
+    await collection.deleteOne({
+        _id: productId
+    })
+
+    return res.json({
+        "message": "Product has been deleted successfully"
+       })
+});
 
 export default productRouter;
